@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Usuarios</title>
+</head>
+<body>
+  <h2>Registrar Usuario</h2>
+  <form id="form">
+    <input id="name" placeholder="Nombre" required>
+    <input id="email" placeholder="Email" type="email" required>
+    <input id="phone" placeholder="Teléfono" required>
+    <button type="submit">Guardar</button>
+  </form>
+
+  <h2>Usuarios</h2>
+  <ul id="list"></ul>
+
+<script>
+  const API = '';
+
+  const form = document.getElementById('form');
+  const nameInput  = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const phoneInput = document.getElementById('phone');
+  const list = document.getElementById('list');
+
+  async function cargarUsuarios() {
+    try {
+      const r = await fetch(API + '/users/');
+      if (!r.ok) throw new Error('No se pudo obtener la lista de usuarios');
+      const data = await r.json();
+      list.innerHTML = data.map(u => `<li>${u.name} - ${u.email}</li>`).join('');
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      name:  nameInput.value.trim(),
+      email: emailInput.value.trim(),
+      phone: phoneInput.value.trim()
+    };
+
+    try {
+      const r = await fetch(API + '/users/create/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (r.status === 400) {
+        const data = await r.json();
+        if (data.email && data.email[0].includes('exists')) {
+          throw new Error('El correo ya está registrado.');
+        } else {
+          throw new Error('Revisá los datos ingresados: faltan o son inválidos.');
+        }
+      } else if (!r.ok) {
+        throw new Error('Error del servidor al guardar el usuario.');
+      }
+
+      // Si todo sale bien:
+      form.reset();
+      nameInput.focus();
+      await cargarUsuarios();
+      alert('Usuario registrado correctamente.');
+
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  });
+
+  cargarUsuarios();
+</script>
+
+</body>
+</html>
