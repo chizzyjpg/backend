@@ -7,7 +7,8 @@ RUN pip install --no-cache-dir \
     django \
     djangorestframework \
     django-cors-headers \
-    python-dotenv
+    python-dotenv \
+    requests
 
 RUN mkdir -p /tmp
 
